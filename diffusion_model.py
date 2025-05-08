@@ -5,6 +5,7 @@ from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
 from IPython.display import display, clear_output
 from latent_proccess import pil_to_latents, latents_to_pil, text_enc
+from torch.cuda.amp import autocast
 
 # Initialize scheduler and model
 scheduler = LMSDiscreteScheduler(
@@ -16,7 +17,7 @@ unet = UNet2DConditionModel.from_pretrained(
     "CompVis/stable-diffusion-v1-4", subfolder="unet", torch_dtype=torch.float16
 ).to("cuda")
 
-def prompt_2_img(prompts, g=7.5, seed=100, steps=10000, dim=128, save_int=True):
+def prompt_2_img(prompts, g=7.5, seed=100, steps=100, dim=512, save_int=True):
     """
     Diffusion process to convert prompt to image
     """
@@ -60,7 +61,7 @@ def prompt_2_img(prompts, g=7.5, seed=100, steps=10000, dim=128, save_int=True):
         latents_norm = torch.norm(latents.view(latents.shape[0], -1), dim=1).mean().item()
         print(f"Step {i+1}/{steps} Latents Norm: {latents_norm}")
 
-        if save_int and i % 10 == 0:
+        if save_int and i % 20 == 0:
             img = latents_to_pil(latents)[0]
             image_path = os.path.join(save_dir, f"la_{i:04d}.jpeg")
             img.save(image_path)
